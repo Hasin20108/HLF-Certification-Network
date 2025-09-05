@@ -1,49 +1,65 @@
-'use strict';
-
-/**
- * This is a Node.JS module to load a user's Identity to his wallet.
- * This Identity will be used to sign transactions initiated by this user.
- * Defaults:
- *  User Name: MHRD_ADMIN
- *  User Organization: MHRD
- *  User Role: Admin
- *
+/*
+ * SPDX-License-Identifier: Apache-2.0
  */
 
-const fs = require('fs'); // FileSystem Library
-const { FileSystemWallet, X509WalletMixin } = require('fabric-network'); // Wallet Library provided by Fabric
-const path = require('path'); // Support library to build filesystem paths in NodeJs
+'use strict';
 
-const crypto_materials = path.resolve(__dirname, '../network/crypto-config'); // Directory where all Network artifacts are stored
+const { Wallets } = require('fabric-network');
+const fs = require('fs');
+const path = require('path');
 
-// A wallet is a filesystem path that stores a collection of Identities
-const wallet = new FileSystemWallet('./identity/mhrd');
+// Capture the absolute path to the crypto materials
+const crypto_materials = path.resolve(__dirname, '../network/crypto-config');
 
-async function main(certificatePath, privateKeyPath) {
+async function main() {
+    try {
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'identity/mhrd');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
 
-	// Main try/catch block
-	try {
+        // Check to see if we've already enrolled the admin user.
+        const identityExists = await wallet.get('MHRD_ADMIN');
+        if (identityExists) {
+            console.log('An identity for the admin user "MHRD_ADMIN" already exists in the wallet');
+            return;
+        }
 
-		// Fetch the credentials from our previously generated Crypto Materials required to create this user's identity
-		const certificate = fs.readFileSync(certificatePath).toString();
-		// IMPORTANT: Change the private key name to the key generated on your computer
-		const privatekey = fs.readFileSync(privateKeyPath).toString();
+        // Identify credentials for MHRD admin
+        const keyPath = path.join(crypto_materials, '/peerOrganizations/mhrd.certification-network.com/users/Admin@mhrd.certification-network.com/msp/keystore');
+        const certPath = path.join(crypto_materials, '/peerOrganizations/mhrd.certification-network.com/users/Admin@mhrd.certification-network.com/msp/signcerts/Admin@mhrd.certification-network.com-cert.pem');
 
-		// Load credentials into wallet
-		const identityLabel = 'MHRD_ADMIN';
-		const identity = X509WalletMixin.createIdentity('mhrdMSP', certificate, privatekey);
+        // Check if credential files exist
+        if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
+            console.error('Credential files not found!');
+            return;
+        }
+        
+        // Read credentials
+        const cert = fs.readFileSync(certPath, 'utf8');
+        // Find the private key file name
+        const keyFile = fs.readdirSync(keyPath)[0];
+        const key = fs.readFileSync(path.join(keyPath, keyFile), 'utf8');
+        
+        // Create the identity object for the wallet
+        const identity = {
+            credentials: {
+                certificate: cert,
+                privateKey: key,
+            },
+            mspId: 'mhrdMSP',
+            type: 'X.509',
+        };
+        
+        // Import the new identity into the wallet.
+        await wallet.put('MHRD_ADMIN', identity);
+        console.log('Successfully imported MHRD_ADMIN identity into the wallet');
 
-		await wallet.import(identityLabel, identity);
-
-	} catch (error) {
-		console.log(`Error adding to wallet. ${error}`);
-		console.log(error.stack);
-		throw new Error(error);
-	}
+    } catch (error) {
+        console.error(`Failed to enroll admin user "MHRD_ADMIN": ${error}`);
+        process.exit(1);
+    }
 }
 
-/* main('/home/upgrad/workspace/certification-network/network/crypto-config/peerOrganizations/mhrd.certification-network.com/users/Admin@mhrd.certification-network.com/msp/signcerts/Admin@mhrd.certification-network.com-cert.pem', '/home/upgrad/workspace/certification-network/network/crypto-config/peerOrganizations/mhrd.certification-network.com/users/Admin@mhrd.certification-network.com/msp/keystore/69e13659643b75e6c9e31c682b029db75bcba598eefe63b6dbd214dd1e7e79b6_sk').then(() => {
-  console.log('User identity added to wallet.');
-}); */
+main();
 
-module.exports.execute = main;

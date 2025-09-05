@@ -5,19 +5,42 @@
 
 1. network:
 contains below:
-- Channel-artifacts - Channel configuration
-- crypto-materials - certificates for different entities on the network
-- docker configuration files
+- Channel-artifacts
+- crypto-config
+- docker-base
+  - docker-compose-base.yaml
+  - docker-compose-peer.yaml
 - scripts to interact with Hyperledger fabric network
+  - bootstrap.sh
+  - installChaincode.sh
+  - updateChaincode.sh
+  - utils.sh
+- configtx.yaml
+- crypto-config.yaml
+- docker-compose-e2e.yml
+- docker-compose-template.yaml
+- docker-compose.yaml 
+- fabricNetwork.sh
 
 2. chaincode:
 contains below:
 - contract.js - Smart contract
 - index.js 
+- package-lock.json
 - package.json
 - node_modules 
 
 3. Application:
 contains below:
 - API's to expose the backend function written on the smart contracts
+  - 1_addToWallet
+  - 2_createStudents.js
+  - 3_getStudents.js
+  - 4_issueCertificate.js
+  - 5_verifyCertificate.js
+  - contractHelper.js
+  - index.js
+  - connection-profile-mhrd.yaml
+  - package-lock.json
+  - package.json
 - Client Directory which have the HTML,CSS files for the front-end

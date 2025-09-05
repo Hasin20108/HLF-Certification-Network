@@ -27,7 +27,7 @@ Organizations:
         Rule: "OR('iitMSP.admin', 'iitMSP.peer', 'iitMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('iitMSP.admin', 'iitMSP.peer', 'iitMSP.client')"
+        Rule: "OR('iitMSP.admin')"
     AnchorPeers:
       - Host: peer0.iit.certification-network.com
         Port: 7051
@@ -45,7 +45,7 @@ Organizations:
         Rule: "OR('mhrdMSP.admin', 'mhrdMSP.peer', 'mhrdMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('mhrdMSP.admin', 'mhrdMSP.peer', 'mhrdMSP.client')"
+        Rule: "OR('mhrdMSP.admin')"
     AnchorPeers:
       - Host: peer0.mhrd.certification-network.com
         Port: 9051
@@ -63,30 +63,18 @@ Organizations:
         Rule: "OR('upgradMSP.admin', 'upgradMSP.peer', 'upgradMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('upgradMSP.admin', 'upgradMSP.peer', 'upgradMSP.client')"
+        Rule: "OR('upgradMSP.admin')"
     AnchorPeers:
       - Host: peer0.upgrad.certification-network.com
         Port: 11051
 
-
-
-#Capabilities
-
 Capabilities:
   Channel: &ChannelCapabilities
-    V1_4_3: true
-    V1_3: false
-    V1_1: false
+    V2_0: true
   Orderer: &OrdererCapabilities
-    V1_4_2: true
-    V1_1: false
+    V2_0: true
   Application: &ApplicationCapabilities
-    V1_4_2: true
-    V1_3: false
-    V1_2: false
-    V1_1: false
-
-#Application
+    V2_0: true
 
 Application: &ApplicationDefaults
   Organizations:
@@ -99,10 +87,15 @@ Application: &ApplicationDefaults
       Rule: "ANY Writers"
     Admins:
       Type: ImplicitMeta
-      Rule: "ANY Admins"
-  Capabilities: *ApplicationCapabilities
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: Signature
+      Rule: "OR('iitMSP.member', 'mhrdMSP.member', 'upgradMSP.member')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('iitMSP.member', 'mhrdMSP.member', 'upgradMSP.member')"
 
-#Orderer
+
 Orderer: &OrdererDefaults
   OrdererType: solo
   Addresses:
@@ -124,23 +117,18 @@ Orderer: &OrdererDefaults
     Admins:
       Type: ImplicitMeta
       Rule: "ANY Admins"
-    # BlockValidation specifies what signatures must be included in the block
-    # from the orderer for the peer to validate it.
     BlockValidation:
       Type: ImplicitMeta
       Rule: "ANY Writers"
 
 Channel: &ChannelDefaults
   Policies:
-    # Who may invoke the 'Deliver' API
     Readers:
       Type: ImplicitMeta
       Rule: "ANY Readers"
-    # Who may invoke the 'Broadcast' API
     Writers:
       Type: ImplicitMeta
       Rule: "ANY Writers"
-    # By default, who may modify elements at this config level
     Admins:
       Type: ImplicitMeta
       Rule: "ANY Admins"
@@ -148,7 +136,6 @@ Channel: &ChannelDefaults
     <<: *ChannelCapabilities
 
 
-#Profiles
 Profiles:
   OrdererGenesis:
     <<: *ChannelDefaults
@@ -177,3 +164,4 @@ Profiles:
         - *upgrad
       Capabilities:
         <<: *ApplicationCapabilities
+

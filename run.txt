@@ -1,0 +1,35 @@
+cd network
+./fabricNetwork.sh down
+
+./fabricNetwork.sh generate
+
+./fabricNetwork.sh up
+
+ধাপ ৫: অ্যাপ্লিকেশন এর জন্য Node.js মডিউল ইনস্টল করা
+cd ../application
+npm install
+
+location: network/
+chmod +x scripts/deployCertNet.sh
+chmod +x scripts/bootstrap.sh
+chmod +x scripts/envVar.sh
+
+location: chaincode-go/
+go mod init github.com/chaincode
+go mod tidy
+go mod vendor
+
+ধাপ ৬: Go চেইনকোড ডেপ্লয় করা
+cd ../network
+./fabricNetwork.sh deploy
+
+
+১. নতুন ছাত্র তৈরি করতে:
+node 2_createStudent.js
+
+২. সার্টিফিকেট ইস্যু করতে:
+node 4_issueCertificate.js
+
+৩. সার্টিফিকেট ভেরিফাই করতে:
+node 5_verifyCertificate.js
+

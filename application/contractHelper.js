@@ -1,31 +1,29 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { FileSystemWallet, Gateway } = require('fabric-network');
+const { Wallets, Gateway } = require('fabric-network');
 let gateway;
 
 
 async function getContractInstance() {
 	
 	// A gateway defines which peer is used to access Fabric network
-	// It uses a common connection profile (CCP) to connect to a Fabric Peer
-	// A CCP is defined manually in file connection-profile-iit.yaml
 	gateway = new Gateway();
 	
 	// A wallet is where the credentials to be used for this transaction exist
-	// Credentials for user IIT_ADMIN was initially added to this wallet.
-	const wallet = new FileSystemWallet('./identity/mhrd');
+	const walletPath = './identity/mhrd';
+	const wallet = await Wallets.newFileSystemWallet(walletPath);
 	
 	// What is the username of this Client user accessing the network?
 	const fabricUserName = 'MHRD_ADMIN';
 	
 	// Load connection profile; will be used to locate a gateway; The CCP is converted from YAML to JSON.
-	let connectionProfile = yaml.safeLoad(fs.readFileSync('./connection-profile-mhrd.yaml', 'utf8'));
+	let connectionProfile = yaml.load(fs.readFileSync('./connection-profile-mhrd.yaml', 'utf8'));
 	
 	// Set connection options; identity and wallet
 	let connectionOptions = {
 		wallet: wallet,
 		identity: fabricUserName,
-		discovery: { enabled: false, asLocalhost: true }
+		discovery: { enabled: true, asLocalhost: true }
 	};
 	
 	// Connect to gateway using specified parameters
@@ -37,10 +35,9 @@ async function getContractInstance() {
 	const channel = await gateway.getNetwork('certificationchannel');
 	
 	// Get instance of deployed Certnet contract
-	// @param Name of chaincode
-	// @param Name of smart contract
+	// The contract name is omitted as there is only one contract in the chaincode
 	console.log('.....Connecting to Certnet Smart Contract');
-	return channel.getContract('certnet', 'org.certification-network.certnet');
+	return channel.getContract('certnet');
 }
 
 function disconnect() {
@@ -50,3 +47,4 @@ function disconnect() {
 
 module.exports.getContractInstance = getContractInstance;
 module.exports.disconnect = disconnect;
+
