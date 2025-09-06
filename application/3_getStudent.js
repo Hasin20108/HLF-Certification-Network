@@ -1,44 +1,45 @@
+/*
+* This script is used to query the blockchain and get the details of a student.
+*/
+
 'use strict';
 
-/**
- * This is a Node.JS application to fetch a Student Account from network
- * Defaults:
- * StudentID: 0001
- */
-
-const helper = require('./contractHelper');
+const contractHelper = require('./contractHelper.js');
 
 async function main(studentId) {
-
+	
 	try {
-		const certnetContract = await helper.getContractInstance();
-
-		// Create a new student account
-		console.log('.....Get Student Account');
-		const studentBuffer = await certnetContract.submitTransaction('getStudent', studentId);
-
-		// process response
-		console.log('.....Processing Get Student Transaction Response\n\n');
-		let existingStudent = JSON.parse(studentBuffer.toString());
-		console.log(existingStudent);
+		// Get contract instance
+		const contract = await contractHelper.getContractInstance();
+		
+		console.log('.....Get Student Details for Student ID: ' + studentId);
+		const studentBuffer = await contract.evaluateTransaction('GetStudent', studentId);
+		
+		console.log('.....Processing Get Student Transaction Response');
+		
+		let student = JSON.parse(studentBuffer.toString());
+		console.log(JSON.stringify(student, null, 2));
+		
 		console.log('\n\n.....Get Student Transaction Complete!');
-    return existingStudent;
-
+		return student;
+		
 	} catch (error) {
-
-		console.log(`\n\n ${error} \n\n`);
-    throw new Error(error);
-
+		
+		console.log(`\n\n..... DANGER: ${error}`);
+		throw new Error(error);
+		
 	} finally {
-
-		// Disconnect from the fabric gateway
-		helper.disconnect();
-
+		// Disconnect from the gateway
+		console.log('.....Disconnecting from Fabric Gateway');
+		contractHelper.disconnect();
 	}
 }
 
-/* main('200').then(() => {
+// The script requires a studentId as a command line argument
+if (process.argv.length < 3) {
+	console.log('Please provide a Student ID as a command line argument. e.g. node 3_getStudents.js 101');
+	process.exit(1);
+}
 
-	console.log('.....API Execution Complete!');
+main(process.argv[2]);
 
-}); */
