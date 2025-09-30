@@ -1,2 +1,4 @@
 node_modules/
 application/identity/
+network/crypto-config/
+network/channel-artifacts/

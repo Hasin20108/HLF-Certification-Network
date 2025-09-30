@@ -23,6 +23,8 @@ go mod vendor
 cd ../network
 ./fabricNetwork.sh deploy
 
+delete /network/identity
+run node 1_addToWallet.js
 
 ১. নতুন ছাত্র তৈরি করতে:
 node 2_createStudent.js
@@ -32,5 +34,32 @@ node 4_issueCertificate.js
 
 ৩. সার্টিফিকেট ভেরিফাই করতে:
 node 5_verifyCertificate.js
+
+
+
+accha thikache bujhte parsi 
+ekhon ekta kaj koro. khub carefully korba 
+
+ami prothom je command ta run kori seta hocche 
+./fabricNetwork.sh up
+ekhane ki ki command run hoy ar kon kon file call kora hoyeche er vitore setao amake janio .  specifically bolar chesta korba 
+
+
+tarpor ami nicher command chaliyechi 
+cd ../application
+npm install
+er command gulo ki chaincode deploy korar por run korle hoto na ? 
+ei command run korate hoy ta ki ? kon file er help ney ei command? 
+
+
+erpor ami nicher command gulo chaliyechi 
+cd ../network
+./fabricNetwork.sh deploy
+ekhane ki ki command run hoyyeche ?  kon kon file call kora hoyeche er vitore? .  specifically bolar chesta korba 
+
+
+
+
+
 
 
