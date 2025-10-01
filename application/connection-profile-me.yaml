@@ -1,0 +1,97 @@
+name: "certification-network-me"
+version: "1.0.0"
+client:
+  organization: me
+  connection:
+    timeout:
+      peer:
+        endorser: "300"
+      orderer: "300"
+channels:
+  certificationchannel:
+    orderers:
+      - orderer.com
+    peers:
+      peer0.ru.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+      peer0.me.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+      peer0.authenticator.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+
+organizations:
+  me:
+    mspid: meMSP
+    peers:
+      - peer0.me.com
+      - peer1.me.com
+    certificateAuthorities:
+      - ca.me.com
+  ru:
+    mspid: ruMSP
+    peers:
+      - peer0.ru.com
+      - peer1.ru.com
+  authenticator:
+    mspid: authenticatorMSP
+    peers:
+      - peer0.authenticator.com
+      - peer1.authenticator.com
+
+orderers:
+  orderer.com:
+    url: grpc://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.com
+    tlsCACerts:
+      path: ../network/crypto-config/ordererOrganizations/com/tlsca/tlsca.com-cert.pem
+
+peers:
+  peer0.ru.com:
+    url: grpc://localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.ru.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/ru.com/tlsca/tlsca.ru.com-cert.pem
+  peer1.ru.com:
+    url: grpc://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer1.ru.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/ru.com/tlsca/tlsca.ru.com-cert.pem
+  peer0.me.com:
+    url: grpc://localhost:9051
+    grpcOptions:
+      ssl-target-name-override: peer0.me.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/me.com/tlsca/tlsca.me.com-cert.pem
+  peer1.me.com:
+    url: grpc://localhost:10051
+    grpcOptions:
+      ssl-target-name-override: peer1.me.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/me.com/tlsca/tlsca.me.com-cert.pem
+  peer0.authenticator.com:
+    url: grpc://localhost:11051
+    grpcOptions:
+      ssl-target-name-override: peer0.authenticator.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/authenticator.com/tlsca/tlsca.authenticator.com-cert.pem
+  peer1.authenticator.com:
+    url: grpc://localhost:12051
+    grpcOptions:
+      ssl-target-name-override: peer1.authenticator.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/authenticator.com/tlsca/tlsca.authenticator.com-cert.pem
+
+certificateAuthorities:
+  ca.me.com:
+    url: http://localhost:8054
+    caName: ca.me.com
+

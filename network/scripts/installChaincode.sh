@@ -21,7 +21,7 @@ TYPE="$5"
 : ${TYPE="basic"}
 
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
-ORGS="iit mhrd upgrad"
+ORGS="ru me authenticator"
 TIMEOUT=15
 
 if [ "$TYPE" = "basic" ]; then
@@ -36,16 +36,16 @@ echo "Channel name : "$CHANNEL_NAME
 . scripts/utils.sh
 
 ## Install new version of chaincode on peer0 of all 3 orgs making them endorsers
-echo "Installing chaincode on peer0.iit.certification-network.com ..."
-installChaincode 0 'iit' $VERSION
-echo "Installing chaincode on peer0.mhrd.certification-network.com ..."
-installChaincode 0 'mhrd' $VERSION
-echo "Installing chaincode on peer0.upgrad.certification-network.com ..."
-installChaincode 0 'upgrad' $VERSION
+echo "Installing chaincode on peer0.ru.com ..."
+installChaincode 0 'ru' $VERSION
+echo "Installing chaincode on peer0.me.com ..."
+installChaincode 0 'me' $VERSION
+echo "Installing chaincode on peer0.authenticator.com ..."
+installChaincode 0 'authenticator' $VERSION
 
-# Instantiate chaincode on the channel using peer0.iit
-echo "Instantiating chaincode on channel using peer0.iit.certification-network.com ..."
-instantiateChaincode 0 'iit' $VERSION
+# Instantiate chaincode on the channel using peer0.ru
+echo "Instantiating chaincode on channel using peer0.ru.com ..."
+instantiateChaincode 0 'ru' $VERSION
 
 echo
 echo "========= All GOOD, Chaincode CERTNET Is Now Installed & Instantiated On Certification Network =========== "

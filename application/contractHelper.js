@@ -10,14 +10,14 @@ async function getContractInstance() {
 	gateway = new Gateway();
 	
 	// A wallet is where the credentials to be used for this transaction exist
-	const walletPath = './identity/mhrd';
+	const walletPath = './identity/me';
 	const wallet = await Wallets.newFileSystemWallet(walletPath);
 	
 	// What is the username of this Client user accessing the network?
-	const fabricUserName = 'MHRD_ADMIN';
+	const fabricUserName = 'ME_ADMIN';
 	
 	// Load connection profile; will be used to locate a gateway; The CCP is converted from YAML to JSON.
-	let connectionProfile = yaml.load(fs.readFileSync('./connection-profile-mhrd.yaml', 'utf8'));
+	let connectionProfile = yaml.load(fs.readFileSync('./connection-profile-me.yaml', 'utf8'));
 	
 	// Set connection options; identity and wallet
 	let connectionOptions = {

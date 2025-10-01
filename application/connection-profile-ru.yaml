@@ -1,0 +1,53 @@
+name: "certification-network-ru"
+version: "1.0.0"
+client:
+  organization: ru
+  connection:
+    timeout:
+      peer:
+        endorser: "300"
+      orderer: "300"
+channels:
+  certificationchannel:
+    orderers:
+      - orderer.com
+    peers:
+      peer0.ru.com: {}
+      peer0.me.com: {}
+      peer0.authenticator.com: {}
+
+organizations:
+  ru:
+    mspid: ruMSP
+    peers:
+      - peer0.ru.com
+      - peer1.ru.com
+    certificateAuthorities:
+      - ca.ru.com
+
+orderers:
+  orderer.com:
+    url: grpc://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.com
+    tlsCACerts:
+      path: ../network/crypto-config/ordererOrganizations/com/tlsca/tlsca.com-cert.pem
+
+peers:
+  peer0.ru.com:
+    url: grpc://localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.ru.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/ru.com/tlsca/tlsca.ru.com-cert.pem
+  peer1.ru.com:
+    url: grpc://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer1.ru.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/ru.com/tlsca/tlsca.ru.com-cert.pem
+
+certificateAuthorities:
+  ca.ru.com:
+    url: http://localhost:7054
+    caName: ca.ru.com

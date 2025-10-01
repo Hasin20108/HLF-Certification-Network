@@ -1,0 +1,53 @@
+name: "certification-network-authenticator"
+version: "1.0.0"
+client:
+  organization: authenticator
+  connection:
+    timeout:
+      peer:
+        endorser: "300"
+      orderer: "300"
+channels:
+  certificationchannel:
+    orderers:
+      - orderer.com
+    peers:
+      peer0.ru.com: {}
+      peer0.me.com: {}
+      peer0.authenticator.com: {}
+
+organizations:
+  authenticator:
+    mspid: authenticatorMSP
+    peers:
+      - peer0.authenticator.com
+      - peer1.authenticator.com
+    certificateAuthorities:
+      - ca.authenticator.com
+
+orderers:
+  orderer.com:
+    url: grpc://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.com
+    tlsCACerts:
+      path: ../network/crypto-config/ordererOrganizations/com/tlsca/tlsca.com-cert.pem
+
+peers:
+  peer0.authenticator.com:
+    url: grpc://localhost:11051
+    grpcOptions:
+      ssl-target-name-override: peer0.authenticator.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/authenticator.com/tlsca/tlsca.authenticator.com-cert.pem
+  peer1.authenticator.com:
+    url: grpc://localhost:12051
+    grpcOptions:
+      ssl-target-name-override: peer1.authenticator.com
+    tlsCACerts:
+      path: ../network/crypto-config/peerOrganizations/authenticator.com/tlsca/tlsca.authenticator.com-cert.pem
+
+certificateAuthorities:
+  ca.authenticator.com:
+    url: http://localhost:9054
+    caName: ca.authenticator.com

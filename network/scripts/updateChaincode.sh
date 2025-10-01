@@ -21,7 +21,7 @@ TYPE="$5"
 : ${TYPE="basic"}
 
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
-ORGS="iit mhrd upgrad"
+ORGS="ru me authenticator"
 TIMEOUT=15
 
 if [ "$TYPE" = "basic" ]; then
@@ -36,16 +36,16 @@ echo "New Version : "$VERSION
 . scripts/utils.sh
 
 ## Install new version of chaincode on peer0 of all 3 orgs making them endorsers
-echo "Updating chaincode on peer0.iit.certification-network.com ..."
-installChaincode 0 'iit' $VERSION
-echo "Updating chaincode on peer0.mhrd.certification-network.com ..."
-installChaincode 0 'mhrd' $VERSION
-echo "Updating chaincode on peer0.upgrad.certification-network.com ..."
-installChaincode 0 'upgrad' $VERSION
+echo "Updating chaincode on peer0.ru.com ..."
+installChaincode 0 'ru' $VERSION
+echo "Updating chaincode on peer0.me.com ..."
+installChaincode 0 'me' $VERSION
+echo "Updating chaincode on peer0.authenticator.com ..."
+installChaincode 0 'authenticator' $VERSION
 
-# Upgrade chaincode on the channel using peer0.iit
-echo "Upgrading chaincode on channel using peer0.iit.certification-network.com ..."
-upgradeChaincode 0 'iit' $VERSION
+# authenticatore chaincode on the channel using peer0.ru
+echo "authenticatoring chaincode on channel using peer0.ru.com ..."
+authenticatoreChaincode 0 'ru' $VERSION
 
 echo
 echo "========= All GOOD, Chaincode CERTNET Is Now Updated To Version '$VERSION' =========== "

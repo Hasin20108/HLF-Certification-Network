@@ -5,8 +5,8 @@ const crypto = require('crypto');
 
 async function main() {
     try {
-        // Connect to the fabric network and get the contract instance from UpGrad org
-        const contract = await contractHelper.getContractInstance('upgrad', 'upgrad');
+        // Connect to the fabric network and get the contract instance from Authenticator org
+        const contract = await contractHelper.getContractInstance('authenticator', 'authenticator');
 
         console.log('.....Verify a Certificate');
 

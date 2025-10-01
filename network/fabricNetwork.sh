@@ -103,41 +103,41 @@ function generateChannelArtifacts() {
 
   echo
   echo "#################################################################"
-  echo "#######    Generating anchor peer update for iitMSP   ##########"
+  echo "#######    Generating anchor peer update for ruMSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/iitMSPanchors.tx -channelID $CHANNEL_NAME -asOrg iitMSP
+  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/ruMSPanchors.tx -channelID $CHANNEL_NAME -asOrg ruMSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
-    echo "Failed to generate anchor peer update for iitMSP..."
+    echo "Failed to generate anchor peer update for ruMSP..."
     exit 1
   fi
 
   echo
   echo "#################################################################"
-  echo "#######    Generating anchor peer update for mhrdMSP   ##########"
+  echo "#######    Generating anchor peer update for meMSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/mhrdMSPanchors.tx -channelID $CHANNEL_NAME -asOrg mhrdMSP
+  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/meMSPanchors.tx -channelID $CHANNEL_NAME -asOrg meMSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
-    echo "Failed to generate anchor peer update for mhrdMSP..."
+    echo "Failed to generate anchor peer update for meMSP..."
     exit 1
   fi
   echo
 
   echo
   echo "#################################################################"
-  echo "#######    Generating anchor peer update for upgradMSP   ##########"
+  echo "#######    Generating anchor peer update for authenticatorMSP   ##########"
   echo "#################################################################"
   set -x
-  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/upgradMSPanchors.tx -channelID $CHANNEL_NAME -asOrg upgradMSP
+  configtxgen -profile CertificationChannel -outputAnchorPeersUpdate ./channel-artifacts/authenticatorMSPanchors.tx -channelID $CHANNEL_NAME -asOrg authenticatorMSP
   res=$?
   set +x
   if [ $res -ne 0 ]; then
-    echo "Failed to generate anchor peer update for upgradMSP..."
+    echo "Failed to generate anchor peer update for authenticatorMSP..."
     exit 1
   fi
   echo

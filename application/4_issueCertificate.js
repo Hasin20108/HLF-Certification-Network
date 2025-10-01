@@ -5,8 +5,8 @@ const crypto = require('crypto');
 
 async function main() {
     try {
-        // Connect to the fabric network and get the contract instance from MHRD org
-        const contract = await contractHelper.getContractInstance('mhrd', 'mhrd');
+        // Connect to the fabric network and get the contract instance from ME org
+        const contract = await contractHelper.getContractInstance('me', 'me');
 
         console.log('.....Issue a new Certificate');
         

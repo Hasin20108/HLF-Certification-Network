@@ -5,13 +5,13 @@ const contractHelper = require('./contractHelper.js');
 async function main() {
 	try {
 		// Connect to the fabric network and get the contract instance
-		const contract = await contractHelper.getContractInstance('iit', 'iit');
+		const contract = await contractHelper.getContractInstance('ru', 'ru');
 		
 		console.log('.....Create a new student');
 		const studentBuffer = await contract.submitTransaction(
 			'CreateStudent',
-			'101',
-			'Amit Kumar',
+			'2010876101',
+			'Md. Bakhtiar Hasin',
 			'amit.k@email.com'
 		);
 

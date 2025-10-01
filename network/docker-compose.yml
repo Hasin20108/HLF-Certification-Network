@@ -1,117 +1,117 @@
 version: '2'
 
 volumes:
-  orderer.certification-network.com:
-  peer0.iit.certification-network.com:
-  peer1.iit.certification-network.com:
-  peer0.mhrd.certification-network.com:
-  peer1.mhrd.certification-network.com:
-  peer0.upgrad.certification-network.com:
-  peer1.upgrad.certification-network.com:
+  orderer.com:
+  peer0.ru.com:
+  peer1.ru.com:
+  peer0.me.com:
+  peer1.me.com:
+  peer0.authenticator.com:
+  peer1.authenticator.com:
 
 networks:
   certification:
     name: network_certification
 
 services:
-  ca.iit.certification-network.com:
+  ca.ru.com:
     image: hyperledger/fabric-ca:1.5
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca.iit.certification-network.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.ru.com
       - FABRIC_CA_SERVER_TLS_ENABLED=false
     ports:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./crypto-config/peerOrganizations/iit.certification-network.com/ca/:/etc/hyperledger/fabric-ca-server-config
-    container_name: ca.iit.certification-network.com
+      - ./crypto-config/peerOrganizations/ru.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.ru.com
     networks:
       - certification
 
-  ca.mhrd.certification-network.com:
+  ca.me.com:
     image: hyperledger/fabric-ca:1.5
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca.mhrd.certification-network.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.me.com
       - FABRIC_CA_SERVER_TLS_ENABLED=false
     ports:
       - "8054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./crypto-config/peerOrganizations/mhrd.certification-network.com/ca/:/etc/hyperledger/fabric-ca-server-config
-    container_name: ca.mhrd.certification-network.com
+      - ./crypto-config/peerOrganizations/me.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.me.com
     networks:
       - certification
 
-  ca.upgrad.certification-network.com:
+  ca.authenticator.com:
     image: hyperledger/fabric-ca:1.5
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca.upgrad.certification-network.com
+      - FABRIC_CA_SERVER_CA_NAME=ca.authenticator.com
       - FABRIC_CA_SERVER_TLS_ENABLED=false
     ports:
       - "9054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./crypto-config/peerOrganizations/upgrad.certification-network.com/ca/:/etc/hyperledger/fabric-ca-server-config
-    container_name: ca.upgrad.certification-network.com
+      - ./crypto-config/peerOrganizations/authenticator.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.authenticator.com
     networks:
       - certification
 
-  orderer.certification-network.com:
+  orderer.com:
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: orderer.certification-network.com
-    container_name: orderer.certification-network.com
+      service: orderer.com
+    container_name: orderer.com
     networks:
       - certification
 
-  peer0.iit.certification-network.com:
-    container_name: peer0.iit.certification-network.com
+  peer0.ru.com:
+    container_name: peer0.ru.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer0.iit.certification-network.com
+      service: peer0.ru.com
     networks:
       - certification
 
-  peer1.iit.certification-network.com:
-    container_name: peer1.iit.certification-network.com
+  peer1.ru.com:
+    container_name: peer1.ru.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer1.iit.certification-network.com
+      service: peer1.ru.com
     networks:
       - certification
 
-  peer0.mhrd.certification-network.com:
-    container_name: peer0.mhrd.certification-network.com
+  peer0.me.com:
+    container_name: peer0.me.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer0.mhrd.certification-network.com
+      service: peer0.me.com
     networks:
       - certification
 
-  peer1.mhrd.certification-network.com:
-    container_name: peer1.mhrd.certification-network.com
+  peer1.me.com:
+    container_name: peer1.me.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer1.mhrd.certification-network.com
+      service: peer1.me.com
     networks:
       - certification
 
-  peer0.upgrad.certification-network.com:
-    container_name: peer0.upgrad.certification-network.com
+  peer0.authenticator.com:
+    container_name: peer0.authenticator.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer0.upgrad.certification-network.com
+      service: peer0.authenticator.com
     networks:
       - certification
 
-  peer1.upgrad.certification-network.com:
-    container_name: peer1.upgrad.certification-network.com
+  peer1.authenticator.com:
+    container_name: peer1.authenticator.com
     extends:
       file: docker-base/docker-compose-base.yaml
-      service: peer1.upgrad.certification-network.com
+      service: peer1.authenticator.com
     networks:
       - certification
 
@@ -133,12 +133,12 @@ services:
       - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
       - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
-      - orderer.certification-network.com
-      - peer0.iit.certification-network.com
-      - peer1.iit.certification-network.com
-      - peer0.mhrd.certification-network.com
-      - peer1.mhrd.certification-network.com
-      - peer0.upgrad.certification-network.com
-      - peer1.upgrad.certification-network.com
+      - orderer.com
+      - peer0.ru.com
+      - peer1.ru.com
+      - peer0.me.com
+      - peer1.me.com
+      - peer0.authenticator.com
+      - peer1.authenticator.com
     networks:
       - certification
