@@ -1,0 +1,903 @@
+app.js
+document.addEventListener('DOMContentLoaded', () => {
+    // Form and element references
+    const createStudentForm = document.getElementById('create-student-form');
+    const addCourseForm = document.getElementById('add-course-form');
+    const studentListDiv = document.getElementById('student-list');
+    const profilePlaceholder = document.getElementById('profile-placeholder');
+    const profileDetailsDiv = document.getElementById('profile-details');
+    const resultDiv = document.getElementById('result');
+    const searchInput = document.getElementById('search-student-input'); // Search input
+
+    let allStudents = []; // To store the complete list of students
+
+    // --- Helper Functions ---
+    const showResult = (data, success = true) => {
+        resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        resultDiv.className = success ? 'alert alert-success' : 'alert alert-danger';
+    };
+
+    // Renders the list of students based on the provided array
+    const renderStudentList = (studentsToRender) => {
+        studentListDiv.innerHTML = '';
+        if (studentsToRender.length === 0) {
+            studentListDiv.innerHTML = '<p class="text-muted p-2">No students match your search.</p>';
+            return;
+        }
+        studentsToRender.forEach(student => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.innerHTML = `<strong>${student.name}</strong><br><small class="text-muted">${student.studentId}</small>`;
+            item.dataset.studentId = student.studentId;
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                renderProfileDetails(student.studentId);
+            });
+            studentListDiv.appendChild(item);
+        });
+    };
+    
+    const renderProfileDetails = (studentId) => {
+        const student = allStudents.find(s => s.studentId === studentId);
+        if (!student) return;
+
+        profilePlaceholder.classList.add('d-none');
+        profileDetailsDiv.classList.remove('d-none');
+
+        document.getElementById('profile-name').textContent = student.name;
+        document.getElementById('profile-id').textContent = student.studentId;
+        document.getElementById('profile-email').textContent = student.email;
+        
+        const coursesTableBody = document.getElementById('courses-table-body');
+        coursesTableBody.innerHTML = `
+            <tr>
+                <td><strong>Final CGPA</strong></td>
+                <td>${student.cgpa}</td>
+            </tr>
+            <tr>
+                <td><strong>Status</strong></td>
+                <td><span class="badge bg-info text-dark">${student.status}</span></td>
+            </tr>
+        `;
+        
+        document.getElementById('courseStudentId').value = student.studentId;
+        const cgpaInput = document.getElementById('cgpa-input');
+        cgpaInput.value = student.cgpa !== 'N/A' ? student.cgpa : '';
+    };
+
+    // --- API Call Functions ---
+    const fetchAllStudents = async () => {
+        try {
+            const response = await fetch('/getAllStudents'); 
+            const result = await response.json();
+            if (response.ok) {
+                allStudents = result.students || [];
+                renderStudentList(allStudents); // Render the full list initially
+            } else {
+                throw new Error(result.message || 'Failed to fetch students');
+            }
+        } catch (error) {
+            showResult({ error: error.message }, false);
+            studentListDiv.innerHTML = `<p class="text-danger p-2">Error loading students.</p>`;
+        }
+    };
+
+    // --- Event Listeners ---
+    createStudentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const studentId = document.getElementById('studentId').value;
+        const name = document.getElementById('studentName').value;
+        const email = document.getElementById('studentEmail').value;
+        
+        showResult({ message: "Creating new student profile..." });
+        try {
+            const response = await fetch('/newStudent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studentId, name, email }),
+            });
+            const result = await response.json();
+            showResult(result, response.ok);
+            if(response.ok) {
+                createStudentForm.reset();
+                fetchAllStudents(); // Refresh the list
+            }
+        } catch (error) {
+            showResult({ error: error.message }, false);
+        }
+    });
+
+    addCourseForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const studentId = document.getElementById('courseStudentId').value;
+        const finalCGPA = document.getElementById('cgpa-input').value;
+        
+        if(!studentId) {
+            showResult({ message: 'Please select a student from the list first.'}, false);
+            return;
+        }
+
+        showResult({ message: `Awarding final CGPA to student ${studentId}...` });
+        try {
+            const response = await fetch('/awardCGPA', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studentId, finalCGPA }),
+            });
+            const result = await response.json();
+            showResult(result, response.ok);
+            if(response.ok) {
+                await fetchAllStudents(); // Refresh data
+                setTimeout(() => renderProfileDetails(studentId), 100); // Re-render profile
+            }
+        } catch (error) {
+            showResult({ error: error.message }, false);
+        }
+    });
+
+    // ## নতুন সার্চের জন্য Event Listener ##
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredStudents = allStudents.filter(student =>
+            student.name.toLowerCase().includes(searchTerm) ||
+            student.studentId.toLowerCase().includes(searchTerm)
+        );
+        renderStudentList(filteredStudents);
+    });
+
+    // Initial load
+    fetchAllStudents();
+});
+
+
+
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RU - Student Transcript Dashboard</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="container-fluid">
+    <header class="dashboard-header">
+        <h1>Student Transcript Dashboard</h1>
+        <p>A simple interface to interact with the University's Hyperledger Fabric network.</p>
+    </header>
+
+    <div class="row mb-4">
+        <!-- Create New Student Card -->
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Create New Student</h5>
+                    <form id="create-student-form">
+                        <div class="mb-3">
+                            <label for="studentId" class="form-label">Student ID</label>
+                            <input type="text" class="form-control" id="studentId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">Student Name</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentEmail" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="studentEmail" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Search Student Card -->
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <h5 class="card-title">Search Student by ID</h5>
+                    <form id="search-student-form">
+                        <div class="mb-3">
+                            <label for="searchStudentId" class="form-label">Student ID</label>
+                            <input type="text" class="form-control" id="searchStudentId" placeholder="Enter student ID to search" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Search Student</button>
+                    </form>
+                    <hr>
+                    <div id="search-result-container" class="search-result pt-3">
+                        <p class="text-muted">Search result will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Students on Ledger Card -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Current Students on Ledger</h5>
+                        <button class="btn btn-success" id="refresh-btn">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>NAME</th>
+                                    <th>EMAIL</th>
+                                    <th>STATUS</th>
+                                    <th>CGPA</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-table-body">
+                                <!-- Student data will be populated here -->
+                                <tr><td colspan="6" class="text-center p-4">Loading student data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update CGPA Modal -->
+<div class="modal fade" id="updateCgpaModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateCgpaModalLabel">Update CGPA</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="update-cgpa-form">
+            <p>Updating CGPA for student: <strong id="modalStudentName"></strong></p>
+            <input type="hidden" id="modalStudentId">
+            <div class="mb-3">
+                <label for="modalCgpaInput" class="form-label">Final CGPA</label>
+                <input type="text" class="form-control" id="modalCgpaInput" placeholder="e.g., 3.95" required>
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="save-cgpa-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
+
+
+1_addToWallet.js
+'use strict';
+
+const { Wallets } = require('fabric-network');
+const fs = require('fs');
+const path = require('path');
+
+// Capture the absolute path to the crypto materials
+const crypto_materials = path.resolve(__dirname, '../network/crypto-config');
+
+async function addToWallet() {
+    try {
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.join(process.cwd(), 'identity/me');
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the admin user.
+        const identityExists = await wallet.get('ME_ADMIN');
+        if (identityExists) {
+            console.log('An identity for the admin user "ME_ADMIN" already exists in the wallet');
+            return; // Exit the function if identity is already there
+        }
+
+        // Identify credentials for me admin
+        const keyPath = path.join(crypto_materials, '/peerOrganizations/me.com/users/Admin@me.com/msp/keystore');
+        const certPath = path.join(crypto_materials, '/peerOrganizations/me.com/users/Admin@me.com/msp/signcerts/Admin@me.com-cert.pem');
+
+        // Check if credential files exist
+        if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
+            throw new Error('Credential files for ME_ADMIN not found!');
+        }
+        
+        // Read credentials
+        const cert = fs.readFileSync(certPath, 'utf8');
+        // Find the private key file name
+        const keyFile = fs.readdirSync(keyPath)[0];
+        const key = fs.readFileSync(path.join(keyPath, keyFile), 'utf8');
+        
+        // Create the identity object for the wallet
+        const identity = {
+            credentials: {
+                certificate: cert,
+                privateKey: key,
+            },
+            mspId: 'meMSP',
+            type: 'X.509',
+        };
+        
+        // Import the new identity into the wallet.
+        await wallet.put('ME_ADMIN', identity);
+        console.log('Successfully imported ME_ADMIN identity into the wallet');
+
+    } catch (error) {
+        console.error(`Failed to enroll admin user "ME_ADMIN": ${error.message}`);
+        throw error; // Re-throw the error to be caught by the server starter
+    }
+}
+
+// Export the function so other files can use it
+module.exports = { addToWallet };
+
+
+
+2_createStudent.js
+
+
+
+'use strict';
+
+const contractHelper = require('./contractHelper.js');
+
+async function execute(studentId, name, email) {
+    try {
+        // RU (University) identity ব্যবহার করে contract instance নিন
+        const contract = await contractHelper.getContractInstance('ru', 'ru');
+        
+        console.log('.....Creating a new student transaction');
+        const studentBuffer = await contract.submitTransaction(
+            'CreateStudent',
+            studentId,
+            name,
+            email
+        );
+
+        // process response
+        console.log('.....Processing Create Student Transaction Response');
+        let student = JSON.parse(studentBuffer.toString());
+        console.log(student);
+        console.log('.....Create Student Transaction Complete!');
+        return student;
+
+    } catch (error) {
+        console.log(`\n\n ..... DANGER in createStudent: ${error} \n\n`);
+        throw new Error(error);
+    } finally {
+        // Disconnect from the fabric gateway
+        contractHelper.disconnect();
+    }
+}
+
+module.exports = { execute };
+
+
+
+
+3_getStudent.js
+
+'use strict';
+
+const contractHelper = require('./contractHelper.js');
+
+async function execute(org, user, studentId) {
+    
+    try {
+        // নির্দিষ্ট সংস্থা (org) এবং ব্যবহারকারীর (user) পরিচয় ব্যবহার করুন
+        const contract = await contractHelper.getContractInstance(org, user);
+        
+        console.log(`.....Getting Student Details for Student ID: ${studentId}`);
+        const studentBuffer = await contract.evaluateTransaction('GetStudent', studentId);
+        
+        console.log('.....Processing Get Student Transaction Response');
+        
+        let student = JSON.parse(studentBuffer.toString());
+        console.log(JSON.stringify(student, null, 2));
+        
+        console.log('.....Get Student Transaction Complete!');
+        return student;
+        
+    } catch (error) {
+        
+        console.log(`\n\n..... DANGER in getStudent: ${error}`);
+        throw new Error(error);
+        
+    } finally {
+        // Disconnect from the gateway
+        console.log('.....Disconnecting from Fabric Gateway');
+        contractHelper.disconnect();
+    }
+}
+
+module.exports = { execute };
+
+
+4_issueCertificate.js
+
+
+'use strict';
+
+const contractHelper = require('./contractHelper.js');
+const crypto = require('crypto');
+
+async function execute(studentId, courseId, grade) {
+    try {
+        // ME (Ministry) identity ব্যবহার করে contract instance নিন
+        const contract = await contractHelper.getContractInstance('me', 'me');
+
+        console.log('.....Issuing a new Certificate transaction');
+        
+        // originalHash তৈরি করুন
+        const certificateData = studentId + courseId + grade;
+        const originalHash = crypto.createHash('sha256').update(certificateData).digest('hex');
+
+        const certificateBuffer = await contract.submitTransaction(
+            'IssueCertificate',
+            studentId,
+            courseId,
+            grade,
+            originalHash
+        );
+
+        // process response
+        console.log('.....Processing Issue Certificate Transaction Response');
+        let certificate = JSON.parse(certificateBuffer.toString());
+        console.log(certificate);
+        console.log('.....Issue Certificate Transaction Complete!');
+        return certificate;
+
+    } catch (error) {
+        console.log(`\n\n ..... DANGER in issueCertificate: ${error} \n\n`);
+        throw new Error(error);
+    } finally {
+        // Disconnect from the fabric gateway
+        contractHelper.disconnect();
+    }
+}
+
+module.exports = { execute };
+
+
+5_verifyCertificate.js
+// 'use strict';
+
+// const contractHelper = require('./contractHelper.js');
+// const crypto = require('crypto');
+
+// async function main() {
+//     try {
+//         // Connect to the fabric network and get the contract instance from Authenticator org
+//         const contract = await contractHelper.getContractInstance('authenticator', 'authenticator');
+
+//         console.log('.....Verify a Certificate');
+
+//         // Example data for verification
+//         const studentId = '101';
+//         const courseId = 'COURSE01';
+//         const grade = 'A'; // The grade that was originally used
+//         const certificateData = studentId + courseId + grade;
+//         const currentHash = crypto.createHash('sha256').update(certificateData).digest('hex');
+
+//         const verificationBuffer = await contract.submitTransaction(
+//             'VerifyCertificate',
+//             studentId,
+//             courseId,
+//             currentHash
+//         );
+
+//         // process response
+//         console.log('.....Processing Verify Certificate Transaction Response \n\n');
+//         let result = JSON.parse(verificationBuffer.toString());
+//         console.log(result);
+//         console.log('\n\n.....Verify Certificate Transaction Complete!');
+//         return result;
+
+//     } catch (error) {
+//         console.log(`\n\n ..... DANGER: ${error} \n\n`);
+//         throw new Error(error);
+//     } finally {
+//         // Disconnect from the fabric gateway
+//         contractHelper.disconnect();
+//     }
+// }
+
+// main();
+
+
+
+'use strict';
+
+const contractHelper = require('./contractHelper.js');
+
+async function execute(studentId, courseId, hash) {
+    try {
+        // Authenticator identity ব্যবহার করে contract instance নিন
+        const contract = await contractHelper.getContractInstance('authenticator', 'authenticator');
+
+        console.log('.....Verifying a Certificate transaction');
+
+        const verificationBuffer = await contract.submitTransaction(
+            'VerifyCertificate',
+            studentId,
+            courseId,
+            hash // ফ্রন্টএন্ড থেকে পাঠানো হ্যাশ
+        );
+
+        // process response
+        console.log('.....Processing Verify Certificate Transaction Response');
+        let result = JSON.parse(verificationBuffer.toString());
+        console.log(result);
+        console.log('.....Verify Certificate Transaction Complete!');
+        return result;
+
+    } catch (error) {
+        console.log(`\n\n ..... DANGER in verifyCertificate: ${error} \n\n`);
+        throw new Error(error);
+    } finally {
+        // Disconnect from the fabric gateway
+        contractHelper.disconnect();
+    }
+}
+
+module.exports = { execute };
+
+
+
+contractHelper.js
+const fs = require('fs');
+const yaml = require('js-yaml');
+const { Wallets, Gateway } = require('fabric-network');
+let gateway;
+
+
+async function getContractInstance() {
+	
+	// A gateway defines which peer is used to access Fabric network
+	gateway = new Gateway();
+	
+	// A wallet is where the credentials to be used for this transaction exist
+	const walletPath = './identity/me';
+	const wallet = await Wallets.newFileSystemWallet(walletPath);
+	
+	// What is the username of this Client user accessing the network?
+	const fabricUserName = 'ME_ADMIN';
+	
+	// Load connection profile; will be used to locate a gateway; The CCP is converted from YAML to JSON.
+	let connectionProfile = yaml.load(fs.readFileSync('./connection-profile-me.yaml', 'utf8'));
+	
+	// Set connection options; identity and wallet
+	let connectionOptions = {
+		wallet: wallet,
+		identity: fabricUserName,
+		discovery: { enabled: true, asLocalhost: true }
+	};
+	
+	// Connect to gateway using specified parameters
+	console.log('.....Connecting to Fabric Gateway');
+	await gateway.connect(connectionProfile, connectionOptions);
+	
+	// Access certification channel
+	console.log('.....Connecting to channel - certificationchannel');
+	const channel = await gateway.getNetwork('certificationchannel');
+	
+	// Get instance of deployed Certnet contract
+	// The contract name is omitted as there is only one contract in the chaincode
+	console.log('.....Connecting to Certnet Smart Contract');
+	return channel.getContract('certnet');
+}
+
+function disconnect() {
+	console.log('.....Disconnecting from Fabric Gateway');
+	gateway.disconnect();
+}
+
+module.exports.getContractInstance = getContractInstance;
+module.exports.disconnect = disconnect;
+
+
+index.js
+
+
+
+'use strict';
+
+const express = require('express');
+const cors = require('cors');
+const path = require('path'); // এই মডিউলটি ফাইলের পাথ ঠিক করতে জরুরি
+
+const app = express();
+const port = 3000;
+
+async function startServer() {
+    try {
+        console.log('--- Initializing Application ---');
+        
+        // Step 1: ওয়ালেট সেটআপ শেষ হওয়ার জন্য অপেক্ষা করুন
+        console.log('Step 1: Setting up wallet...');
+        const { addToWallet } = require('./1_addToWallet');
+        await addToWallet();
+        console.log('Wallet setup complete.');
+
+        // Step 2: এখন অন্য মডিউলগুলো ইম্পোর্ট করুন
+        const createStudent = require('./2_createStudent');
+        const getStudent = require('./3_getStudent');
+        const issueCertificate = require('./4_issueCertificate');
+        const verifyCertificate = require('./5_verifyCertificate');
+
+        // Express app settings
+        app.use(cors());
+        app.use(express.json());
+        app.use(express.urlencoded({ extended: true }));
+        app.set('title', 'Certification App');
+        
+        // আপনার css, js, webfonts ফোল্ডারগুলোকে সার্ভ করার জন্য
+        app.use(express.static(__dirname));
+
+        // --- API Routes ---
+
+        // ## সমাধানটি এখানে ##
+        // রুট পেজের জন্য "hello world" না দেখিয়ে index.html ফাইলটি দেখান
+        app.get('/', (req, res) => {
+            res.sendFile(path.join(__dirname, '/client/index.html'));
+        });
+
+        app.post('/newStudent', async (req, res) => {
+            try {
+                const { studentId, name, email } = req.body;
+                const student = await createStudent.execute(studentId, name, email);
+                res.json({ status: 'success', message: 'New student account created successfully!', student });
+            } catch (e) {
+                res.status(500).json({ status: 'error', message: 'Failed to create student.', error: e.toString() });
+            }
+        });
+        
+        app.post('/getStudent', async (req, res) => {
+             try {
+                const { org, user, studentId } = req.body;
+                const student = await getStudent.execute(org, user, studentId);
+                res.json({ status: 'success', message: 'Student data retrieved successfully!', student });
+            } catch (e) {
+                res.status(500).json({ status: 'error', message: 'Failed to retrieve student data.', error: e.toString() });
+            }
+        });
+
+        app.post('/issueCertificate', async (req, res) => {
+            try {
+                const { studentId, courseId, grade } = req.body;
+                const certificate = await issueCertificate.execute(studentId, courseId, grade);
+                res.json({ status: 'success', message: 'New certificate issued successfully!', certificate });
+            } catch (e) {
+                res.status(500).json({ status: 'error', message: 'Failed to issue certificate.', error: e.toString() });
+            }
+        });
+
+        app.post('/verifyCertificate', async (req, res) => {
+            try {
+                const { studentId, courseId, hash } = req.body;
+                const verifyResult = await verifyCertificate.execute(studentId, courseId, hash);
+                res.json({ status: 'success', message: 'Verification result available.', verifyResult });
+            } catch (e) {
+                res.status(500).json({ status: 'error', message: 'Verification failed.', error: e.toString() });
+            }
+        });
+
+        // ওয়ালেট তৈরি হয়ে গেলে, তবেই সার্ভার চালু করুন
+        app.listen(port, () => {
+            console.log('-----------------------------------------');
+            console.log(`✅ Certification App server is live on port ${port}!`);
+            console.log(`   Access the frontend at http://localhost:${port}`);
+            console.log('-----------------------------------------');
+        });
+
+    } catch (error) {
+        console.error('❌ Failed to start the application server:', error);
+        process.exit(1);
+    }
+}
+
+// মূল ফাংশনটি কল করুন
+startServer();
+
+
+chaincode
+certnet.go
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+)
+
+// SmartContract provides functions for managing student transcripts
+type SmartContract struct {
+	contractapi.Contract
+}
+
+// Student describes basic details of a student and their academic record
+type Student struct {
+	ObjectType string    `json:"docType"` // Used to distinguish different asset types
+	StudentID  string    `json:"studentId"`
+	Name       string    `json:"name"`
+	Email      string    `json:"email"`
+	School     string    `json:"school"`      // The identity of the university (RU)
+	Status     string    `json:"status"`      // e.g., "In-Progress", "Graduated"
+	CGPA       string    `json:"cgpa"`        // Final CGPA, e.g., "3.85"
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
+
+// InitLedger is a dummy function to satisfy the chaincode interface
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+	fmt.Println("certnet chaincode initialized")
+	return nil
+}
+
+// CreateStudent creates a new student profile on the ledger.
+func (s *SmartContract) CreateStudent(ctx contractapi.TransactionContextInterface, studentID string, name string, email string) (*Student, error) {
+	existing, err := ctx.GetStub().GetState(studentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if existing != nil {
+		return nil, fmt.Errorf("the student %s already exists", studentID)
+	}
+
+	clientIdentity, err := ctx.GetClientIdentity().GetMSPID() // Get the MSP ID of the caller (e.g., "ruMSP")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client MSPID: %v", err)
+	}
+
+	student := Student{
+		ObjectType: "student",
+		StudentID:  studentID,
+		Name:       name,
+		Email:      email,
+		School:     clientIdentity,
+		Status:     "In-Progress", // Initial status
+		CGPA:       "N/A",         // Initial CGPA
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	studentJSON, err := json.Marshal(student)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.GetStub().PutState(studentID, studentJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return &student, nil
+}
+
+// GetStudent returns the student stored in the world state with given id.
+func (s *SmartContract) GetStudent(ctx contractapi.TransactionContextInterface, studentID string) (*Student, error) {
+	studentJSON, err := ctx.GetStub().GetState(studentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if studentJSON == nil {
+		return nil, fmt.Errorf("the student %s does not exist", studentID)
+	}
+
+	var student Student
+	err = json.Unmarshal(studentJSON, &student)
+	if err != nil {
+		return nil, err
+	}
+
+	return &student, nil
+}
+
+// AwardFinalCGPA updates a student's profile with their final CGPA and graduation status.
+func (s *SmartContract) AwardFinalCGPA(ctx contractapi.TransactionContextInterface, studentID string, finalCGPA string) (*Student, error) {
+	studentJSON, err := ctx.GetStub().GetState(studentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if studentJSON == nil {
+		return nil, fmt.Errorf("the student %s does not exist", studentID)
+	}
+
+	var student Student
+	err = json.Unmarshal(studentJSON, &student)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the CGPA and status
+	student.CGPA = finalCGPA
+	student.Status = "Graduated"
+	student.UpdatedAt = time.Now()
+
+	updatedStudentJSON, err := json.Marshal(student)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.GetStub().PutState(studentID, updatedStudentJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return &student, nil
+}
+
+// GetAllStudents returns all students found in the world state.
+func (s *SmartContract) GetAllStudents(ctx contractapi.TransactionContextInterface) ([]*Student, error) {
+	// Range query with empty startKey and endKey does not work.
+	// We need to use a query selector to get all students.
+	queryString := `{"selector":{"docType":"student"}}`
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var students []*Student
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var student Student
+		err = json.Unmarshal(queryResponse.Value, &student)
+		if err != nil {
+			return nil, err
+		}
+		students = append(students, &student)
+	}
+
+	return students, nil
+}
+
+func main() {
+	chaincode, err := contractapi.NewChaincode(&SmartContract{})
+	if err != nil {
+		log.Panicf("Error creating certnet chaincode: %v", err)
+	}
+
+	if err := chaincode.Start(); err != nil {
+		log.Panicf("Error starting certnet chaincode: %v", err)
+	}
+}
+
+
+
+
+Scenario: 
+
+Rajshahi university create new student account after the graduation and issue his certificate. 
+Ministry of ecucation can verify the certificate 
+Authenticator can also verify the certificate 
+
+except rajshahi university no other else can edit the certificate. 
+
+help me doing necessary change in code to implement the scenario 
+
+Frontend:
+a form for submitting new Student information
+a Display board for showing all students
+a search bar for searching student by his/her id 

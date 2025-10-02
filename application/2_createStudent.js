@@ -10,9 +10,9 @@ async function main() {
 		console.log('.....Create a new student');
 		const studentBuffer = await contract.submitTransaction(
 			'CreateStudent',
-			'2010876101',
-			'Md. Bakhtiar Hasin',
-			'amit.k@email.com'
+			'101',
+			'AB Siddik',
+			'ab.siddik@email.com'
 		);
 
 		// process response
