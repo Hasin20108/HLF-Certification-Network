@@ -34,6 +34,61 @@ With this system, certificates become **tamper-proof, easily verifiable, and tra
 
 ![Architecture Diagram](System-Architecture.png)
 
+## 📂 Project Structure  
+
+The project is organized into three main components:  
+
+---
+
+### 1. **network/**  
+Contains all files related to setting up and running the Hyperledger Fabric network.  
+
+- **Channel-artifacts/**  
+- **crypto-config/**  
+- **docker-base/**  
+  - `docker-compose-base.yaml`  
+  - `docker-compose-peer.yaml`  
+- **scripts/** → Scripts to interact with the Fabric network  
+  - `bootstrap.sh`  
+  - `installChaincode.sh`  
+  - `updateChaincode.sh`  
+  - `utils.sh`  
+- `configtx.yaml`  
+- `crypto-config.yaml`  
+- `docker-compose-e2e.yml`  
+- `docker-compose-template.yaml`  
+- `docker-compose.yaml`  
+- `fabricNetwork.sh`  
+
+---
+
+### 2. **chaincode-go/**  
+Contains the smart contract code.  
+
+- `certnet.go` → Smart contract logic  
+- `go.mod`
+- `go.sum`
+- `vendor/`  
+
+---
+
+### 3. **application/**  
+Contains the backend APIs and frontend client application.  
+
+- `1_addToWallet.js`  
+- `2_createStudents.js`  
+- `3_getStudents.js`  
+- `4_issueCertificate.js`  
+- `5_verifyCertificate.js`  
+- `contractHelper.js`  
+- `index.js`  
+- `connection-profile-mhrd.yaml`  
+- `package-lock.json`  
+- `package.json`  
+
+- Client/ 
+
+---
 
 ---
 
